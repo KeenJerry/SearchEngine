@@ -14,4 +14,13 @@ class TrieTree:
         node[self.end] = None
 
     def find_term(self, term):
+        # TODO implement
         pass
+
+
+class TrieNode:
+
+    ptr_frequency = None
+
+    ptr_position = None
+
