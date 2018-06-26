@@ -17,6 +17,8 @@ class Command(BaseCommand):
                 file = open(path)
                 dict = json.load(file)
                 for key_term in dict:
+                    pass
+
 
 
 

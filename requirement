@@ -1,3 +1,4 @@
 django
 nltk
 # after install nltk do import nltk && nltk.download()
+pyenchant
