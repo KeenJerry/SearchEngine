@@ -3,6 +3,7 @@ from SearchEngine.tools import TrieTree
 import os
 import json
 
+
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('path_to_term')
@@ -13,6 +14,12 @@ class Command(BaseCommand):
         for item in list_dir:
             path = os.path.join(options["path_to_term"], item)
             if os.path.isfile(path):
-                file = open(path, 'r')
+                file = open(path)
+                dict = json.load(file)
+                for key_term in dict:
+
+
+
+
 
 

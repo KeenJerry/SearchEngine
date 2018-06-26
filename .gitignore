@@ -1,2 +1,4 @@
 .idea/
 TermResource/*.json
+.DS_Store
+*.pyc
