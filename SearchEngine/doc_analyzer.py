@@ -7,9 +7,11 @@ import json
 
 CLUSTER_SIZE = 10
 
+# TODO already made to the command in TermResource
 def chunks(l, n):
     for i in range(0, len(l), n):
         yield l[i:i + n]
+
 
 def save_as_json(data,json_name):
 	with open(json_name, 'w') as f:
