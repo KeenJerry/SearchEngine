@@ -1,2 +1,3 @@
 django
-NLTK and NLTK Data (How to install: http://www.nltk.org/data.html)
+nltk
+# after install nltk do import nltk && nltk.download()
