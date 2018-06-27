@@ -1,13 +1,13 @@
 import nltk
-from nltk.stem.snowball import SnowballStemmer
 import re
 import os
 import glob
 import json
 
-CLUSTER_SIZE = 10
 
-# TODO already made to the command in TermResource
+CLUSTER_SIZE = 16000
+
+
 def chunks(l, n):
     for i in range(0, len(l), n):
         yield l[i:i + n]
@@ -18,7 +18,8 @@ def save_as_json(data,json_name):
 		json.dump(data, f)
 	print("save_as_json() completed")
 
-def read_data_from_files(file_names, start_index):
+
+def read_data_from_files(file_names):
 	postings = dict()
 	"""
 	postings is likes this:
@@ -34,7 +35,7 @@ def read_data_from_files(file_names, start_index):
 		#print(content)
 		tokens = nltk.word_tokenize(content)
 		#print(tokens)
-		stemmer = SnowballStemmer("english")
+		stemmer = nltk.stem.snowball.SnowballStemmer("english")
 		stemmed_tokens = [ stemmer.stem(token) for token in tokens ]
 		#print(stemmed_tokens)
 		result_tokens = []
@@ -56,15 +57,15 @@ def read_data_from_files(file_names, start_index):
 			else:
 				postings[token] = dict()
 				postings[token][doc_id] = [pos]
-	print(postings)
+	#print(postings)
 
 	tf_info = dict()
 	"""
 	tf_info is likes this:
-	{ term_a : {    -1    : tf_a  ,
+	{ term_a : {    -1    : df_a  ,
 				 doc_id_x : tf_ax ,
 				 doc_id_y : tf_ay }
-	  term_b : {    -1    : tf_b  ,
+	  term_b : {    -1    : df_b  ,
 	  			 doc_id_y : tf_by ,
 			     doc_id_z : tf_bz } }
 	"""
@@ -72,13 +73,12 @@ def read_data_from_files(file_names, start_index):
 	for term,posting in postings.items():
 		if term not in tf_info:
 			tf_info[term] = dict()
-		sum = 0
+		df = 0
 		for doc_id,pos_list in posting.items():
-			length = len(pos_list)
-			tf_info[term][doc_id] = length
-			sum += length
-		tf_info[term][-1] = sum #the doc_id of -1 means total tf
-	print(tf_info)
+			tf_info[term][doc_id] = len(pos_list)
+			df += 1
+		tf_info[term][-1] = df #the doc_id of -1 means df
+	#print(tf_info)
 
 	data = [postings, tf_info]
 	"""
@@ -87,32 +87,77 @@ def read_data_from_files(file_names, start_index):
 	"""
 	return data
 
+
 def read_data_from_path(src_path, dest_path):
 	json_name = dest_path+"filenames.json"
+	old_file_names = list()
 	if os.path.exists(json_name):
 		with open(json_name, 'r') as f:
 			old_file_names = json.load(f)
 	file_names = glob.glob(src_path+"*.html")
-	save_as_json(file_names, json_name)
 	new_file_names = list(set(file_names).difference(set(old_file_names)))
-	print(new_file_names)
-	data_file_names = glob.glob(dest_path+"data[0-9]*.json")
+	print("Found",len(new_file_names),"new files.")
+	if(len(new_file_names)==0):
+		return
+	
+	pos_file_names = glob.glob(dest_path+"pos[0-9]*.json")
 	indices = list()
-	for name in data_file_names:
-		str_id = re.search("data([0-9]*).json",name).group(1)
+	for name in pos_file_names:
+		str_id = re.search("pos([0-9]*).json",name).group(1)
 		indices.append(int(str_id))
-	last_index = max(indices)
-	print(last_index)
+	if len(indices)>0: 
+		last_index = max(indices)
+	else:
+		last_index = -1
 
-	length = len(new_file_names)
 	start_index = last_index + 1
+	print("The new data file index will start from",start_index,".")
 	for index,file_names_part in enumerate(chunks(new_file_names,CLUSTER_SIZE)):
-		data = read_data_from_files(file_names_part,start_index)
-		save_as_json(data, dest_path+"data"+str(index)+".json")
-		start_index += CLUSTER_SIZE
+		[postings,tf_info] = read_data_from_files(file_names_part)
+		save_as_json(postings, dest_path+"pos"+str(start_index+index)+".json")
+		save_as_json(tf_info, dest_path+"tf"+str(start_index+index)+".json")
 
-###################################################################################
-if __name__ == "__main__":
-	source_path = "E:\\Jiaming\\Documents\\课程资料及作业\\信息检索\\src\\"
-	destination_path = "../TermResource/"
-	read_data_from_path(source_path, destination_path)
+	save_as_json(file_names, json_name)
+
+
+def calc_idf(file_path,json_path,output_path):
+	all_df = dict()
+	json_names = glob.glob(json_path+"tf*.json")
+	for json_name in json_names:
+		with open(json_name, 'r') as f:
+			tf_info = json.load(f)
+		for term,dic in tf_info.items():
+			if term in all_df:
+				all_df[term] += dic["-1"] # dic[-1] saves df
+			else:
+				all_df[term] = dic["-1"]
+		print("Finished dealing with",json_name)
+
+	file_names = glob.glob(file_path+"*.html")
+	file_num = len(file_names)
+	all_idf = dict()
+	for term,df in all_df.items():
+		all_idf[term] = math.log(file_num/df)
+	print(all_idf)
+
+	save_as_json(all_idf, output_path+"idf.json")
+	print("calc_idf() completed")
+
+
+'''def gen_VSM(file_path,json_path,dest_path):
+	file_num = len( glob.glob(file_path+"*.html") )
+	with open(src_path+"idf.json", 'r') as f:
+		idf_dict = json.load(f)
+	term_num = len(idf_dict)
+
+	doc_vecs = dict()
+	for doc in range():
+
+	tf_json_names = glob.glob(src_path+"tf*.json")
+	for tf_json_name in tf_json_names:
+		with open(tf_json_name, 'r') as f:
+			tf_info = json.load(f)
+			wf_idf = (1+math.log(tf)) * idf
+
+	save_as_json(doc_vecs, dest_path+"VSM.json")
+	print("gen_VSM() completed")'''

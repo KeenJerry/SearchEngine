@@ -27,6 +27,7 @@ class TrieTree():
     def find_term(self, term):
         # TODO implement
         node = self.root
+        # print(term)
         for char in term:
             child = self.find_char(node, char)
             node = child

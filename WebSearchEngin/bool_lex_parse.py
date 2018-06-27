@@ -1,5 +1,9 @@
 import ply.lex as lex
 import ply.yacc as yacc
+import nltk
+
+from WebSearchEngin.views import AND, OR, NOT
+from WebSearchEngin.query import find_term
 
 
 # List of token names
@@ -51,23 +55,24 @@ precedence = (
 	('left', 'NOT'),  
 )
 
-def p_expression_binop(p): 
+def p_expression_binop(p):
     '''expression : expression AND expression
-                  | expression OR expression''' 
-    if p[2] == 'AND' : p[0] = p[1] and p[3]
-    elif p[2] == 'OR' : p[0] = p[1] or p[3]
+    | expression OR expression'''
+    if p[2] == 'AND' : p[0] = AND(p[1], p[3])
+    elif p[2] == 'OR' : p[0] = OR(p[1], p[3])
 
-def p_expression_not(p):  
-	"expression : NOT expression"  
-	p[0] = not p[2]
+def p_expression_not(p):
+    "expression : NOT expression"
+    p[0] = p[2]
 
-def p_expression_group(p):  
-	"expression : LPAREN expression RPAREN"  
-	p[0] = p[2]
+def p_expression_group(p):
+    "expression : LPAREN expression RPAREN"
+    p[0] = p[2]
 
-def p_expression_token(p):  
-	"expression : TK"
-	return
+def p_expression_token(p):
+    "expression : TK"
+    stemmer = nltk.stem.snowball.SnowballStemmer("english")
+    p[0] = find_term(stemmer.stem(p[1])).index
 
 # Error rule for syntax errors
 def p_error(p):
@@ -75,6 +80,6 @@ def p_error(p):
 
 # Build the parser
 parser = yacc.yacc()
-data = "( happy OR glad ) AND angry"
-result = parser.parse(data)
-print(result)
+# data = "( happy OR glad ) AND angry"
+# result = parser.parse(data)
+# print(result)

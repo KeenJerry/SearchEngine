@@ -8,6 +8,7 @@ import enchant
 import copy
 import ply.lex as lex
 import ply.yacc as yacc
+# from query import similar_search, wildcard_search
 
 
 def t_AND(t):
@@ -186,40 +187,47 @@ def home():
 
     # TODO get input
 
-    flag = 'bool'
-    stemmer = SnowballStemmer("english")
+    while True:
+        print('Please choose a search mode:')
+        print('[1] Bool Search')
+        print('[2] Similar Search')
+        print('[3] Wildcard Search')
+        flag = input()
+        if flag == 1:
+            print('You have chosed bool search.')
+        if flag == 2:
+            print('You have chosed similar search.')
+        if flag == 3:
+            print('You have chosed wildcard search.')
 
-    data = 'emhart AND emh'
+        # stemmer = SnowballStemmer("english")
 
-    if flag == 'bool':
-        # stack1 = Stack()
-        # stack2 = Stack()
+        data = input('Please input your search statement:')
 
-        # data = "( happy OR glad ) AND angry"
-        result = parser.parse(data)
-        # print(result)
+        if flag == 1:
 
-        # node1 = trie_tree.find_term(stemmer.stem('emhart'))
-        # node2 = trie_tree.find_term(stemmer.stem("emh"))
-        # if node1 is None:
-        #     print('Find nothing.')
-        #     return None
-        # if node2 is None:
-        #     print('Find nothing.')
-        #     return None
+            result = parser.parse(data)
 
-        # result = AND(node1.index, node2.index)
-        if result is None:
-            print("Find nothing")
-            return None
-        else:
-            for key in result:
-                print(key, end=' ')
-                # print(node1.index[key])
+            if result is None:
+                print("Find nothing")
+                return None
+            else:
+                for key in result:
+                    print(key, end=' ')
+                    # print(node1.index[key])
 
+        if flag == 2:
+            pass
+            #similar_search(data)
 
-if __name__ == "__main__":
-     home()
+        if flag == 3:
+            pass
+
+            term_list = ["apple", "app", "application", "apolo", "bppb", "appnd"]
+            #wildcard_search(term_list, data)
+
+# if __name__ == "__main__":
+#      home()
 
 
 
