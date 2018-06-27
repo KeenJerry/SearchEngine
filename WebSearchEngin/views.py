@@ -2,10 +2,133 @@ from django.shortcuts import render
 from SearchEngine.tools import TrieTree
 import os
 import json
-# Create your views here.
+import nltk
+from nltk.stem.snowball import SnowballStemmer
+import enchant
+import copy
+import ply.lex as lex
+import ply.yacc as yacc
 
-trie_tree = TrieTree()
-tf_idf_tree = TrieTree()
+
+def t_AND(t):
+    r'AND'
+    return t
+
+def t_OR(t):
+    r'OR'
+    return t
+
+def t_NOT(t):
+    r'NOT'
+    return t
+
+def t_LPAREN(t):
+    r'\('
+    return t
+
+def t_RPAREN(t):
+    r'\)'
+    return t
+
+def t_TK(t):
+    r'[^ ]+'
+    return t
+
+def t_error(t):
+    print("Illegal character '%s'" % t.value[0])
+    t.lexer.skip(1)
+
+def p_expression_binop(p):
+    '''expression : expression AND expression
+    | expression OR expression'''
+    if p[2] == 'AND' : p[0] = AND(p[1], p[3])
+    elif p[2] == 'OR' : p[0] = OR(p[1], p[3])
+
+def p_expression_not(p):
+    "expression : NOT expression"
+    p[0] = p[2]
+
+def p_expression_group(p):
+    "expression : LPAREN expression RPAREN"
+    p[0] = p[2]
+
+def p_expression_token(p):
+    "expression : TK"
+    p[0] = trie_tree.find_term(p[1]).index
+
+# Error rule for syntax errors
+def p_error(p):
+    print("Syntax error in input!")
+
+
+def sort_index(index):
+    keys = index.keys()
+    return sorted(keys)
+
+def AND(index1, index2):
+    index1_sort_keys = sort_index(index1)
+    index2_sort_keys = sort_index(index2)
+
+    result = []
+    i = j = 0
+    while i < len(index1_sort_keys) and j < len(index2_sort_keys):
+        if index1_sort_keys[i] == index2_sort_keys[j]:
+            result.append(index1_sort_keys[i])
+            i = i + 1
+            j = j + 1
+        else:
+            if index1_sort_keys[i] < index2_sort_keys[j]:
+                i = i + 1
+            else:
+                j = j + 1
+    return result
+
+def OR(index1, index2):
+    index1_sort_keys = sort_index(index1)
+    index2_sort_keys = sort_index(index2)
+
+    result = []
+    i = j = 0
+    while i < len(index1_sort_keys) or j < len(index2_sort_keys):
+        if i < len(index1_sort_keys) and j < len(index2_sort_keys):
+            if index1_sort_keys[i] == index2_sort_keys[j]:
+                result.append(index1_sort_keys[i])
+                # result.append(index2_sort_keys[j])
+                i = i + 1
+                j = j + 1
+            else:
+                if index1_sort_keys[i] < index2_sort_keys[j]:
+                    result.append(index1_sort_keys[i])
+                    i = i + 1
+                else:
+                    result.append(index2_sort_keys[j])
+                    j = j + 1
+        else:
+            if i > len(index1_sort_keys) and j < len(index2_sort_keys):
+                result.append(index2_sort_keys[j])
+                j = j + 1
+            else:
+                result.append(index1_sort_keys[i])
+                i = i + 1
+    return result
+
+def NOT(index1, index2):
+    index1_sort_keys = sort_index(index1)
+    index2_sort_keys = sort_index(index2)
+
+    result = copy.deepcopy(index1_sort_keys)
+    i = j = 0
+    while i < len(index1_sort_keys) or j < len(index2_sort_keys):
+        if index1_sort_keys[i] == index2_sort_keys[j]:
+            result.remove(index1_sort_keys[i])
+            i = i + 1
+            j = j + 1
+        else:
+            if index1_sort_keys[i] < index2_sort_keys[j]:
+                i = i + 1
+            else:
+                j = j + 1
+    return result
 
 def create_trie_tree(tree, path_to_term):
     file = open(path_to_term)
@@ -22,14 +145,81 @@ def create_trie_tree(tree, path_to_term):
                 print(' ', end='')
         print(']')
 
-if __name__ == "__main__":
-    print('start build trie tree...')
+def spell_correction(word):
+    if not d.check(word):
+        return d.suggest(word)[0]
+
+
+# List of token names
+tokens = (
+    'TK',
+    'AND',
+    'OR',
+    'NOT',
+    'LPAREN',
+    'RPAREN',
+)
+
+t_ignore = " \t"
+
+# Build the lexer
+lexer = lex.lex()
+
+precedence = (
+    ('left', 'OR'),
+    ('left', 'AND'),
+    ('left', 'NOT'),
+)
+
+# Build the parser
+parser = yacc.yacc()
+
+# Create your views here.
+
+trie_tree = TrieTree()
+tf_idf_tree = TrieTree()
+d = enchant.Dict('en_US')
+
+def home():
     create_trie_tree(trie_tree, '../TermResource/pos0.json')
-    print('start build tf_idf tree...')
     create_trie_tree(tf_idf_tree, '../TermResource/tf0.json')
 
-    node = trie_tree.find_term('apple')
-    i = 0
+    # TODO get input
+
+    flag = 'bool'
+    stemmer = SnowballStemmer("english")
+
+    data = 'emhart AND emh'
+
+    if flag == 'bool':
+        # stack1 = Stack()
+        # stack2 = Stack()
+
+        # data = "( happy OR glad ) AND angry"
+        result = parser.parse(data)
+        # print(result)
+
+        # node1 = trie_tree.find_term(stemmer.stem('emhart'))
+        # node2 = trie_tree.find_term(stemmer.stem("emh"))
+        # if node1 is None:
+        #     print('Find nothing.')
+        #     return None
+        # if node2 is None:
+        #     print('Find nothing.')
+        #     return None
+
+        # result = AND(node1.index, node2.index)
+        if result is None:
+            print("Find nothing")
+            return None
+        else:
+            for key in result:
+                print(key, end=' ')
+                # print(node1.index[key])
+
+
+if __name__ == "__main__":
+     home()
 
 
 
