@@ -2,9 +2,6 @@ class MaxHeap: # element: {docID: score}
     def __init__(self):
         self.data = []
 
-    def __init__(self):
-
-
     def size(self):
         return len(self.data)
 
