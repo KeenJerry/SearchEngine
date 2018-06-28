@@ -34,12 +34,13 @@ def calc_similarity(input_term,pos):
 
 def choose_similar_terms(term_weight_dict):
 	cut_line = 0.2
-	smooth = 0.7
+	sharp = 0.8
+	importance = 0.7
 	new_term_weight_dict = dict()
 	max_weight = max(term_weight_dict.values())
 	for term,weight in term_weight_dict.items():
 		if weight>max_weight*cut_line:
-			new_term_weight_dict[term] = (weight/max_weight)**smooth
+			new_term_weight_dict[term] = (weight/max_weight)**sharp * importance
 	return new_term_weight_dict
 
 def get_similar_terms(input_term,pos):

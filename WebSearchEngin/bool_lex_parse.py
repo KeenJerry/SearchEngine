@@ -60,10 +60,11 @@ def p_expression_binop(p):
     | expression OR expression'''
     if p[2] == 'AND' : p[0] = AND(p[1], p[3])
     elif p[2] == 'OR' : p[0] = OR(p[1], p[3])
+    # elif p[2] == 'NOT': p[0] = NOT(p[1], p[3])
 
 def p_expression_not(p):
     "expression : NOT expression"
-    p[0] = p[2]
+    p[0] = NOT(all, p[2])
 
 def p_expression_group(p):
     "expression : LPAREN expression RPAREN"
@@ -72,13 +73,21 @@ def p_expression_group(p):
 def p_expression_token(p):
     "expression : TK"
     stemmer = nltk.stem.snowball.SnowballStemmer("english")
-    p[0] = find_term(stemmer.stem(p[1])).index
+    node = find_term(stemmer.stem(p[1]))
+    if not node:
+        pass
+    else:
+        p[0] = node.index
+
 
 # Error rule for syntax errors
 def p_error(p):
-	print("Syntax error in input!")
+    print("Syntax error in input!")
 
 # Build the parser
+all = {}
+for i in range(0, 10788):
+    all[str(i)] = '0'
 parser = yacc.yacc()
 # data = "( happy OR glad ) AND angry"
 # result = parser.parse(data)

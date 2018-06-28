@@ -19,6 +19,8 @@ class TrieTree():
         node.index = index
 
     def find_char(self, node, char):
+        if not node:
+            return False
         for child in node.children:
             if child.char == char:
                 return child
@@ -32,10 +34,13 @@ class TrieTree():
             child = self.find_char(node, char)
             node = child
 
-        if not node.is_term:
+        if not node :
             return None
         else:
-            return node
+            if node.is_term:
+                return node
+            else:
+                return None
 
 
 class TrieNode:

@@ -114,22 +114,28 @@ def OR(index1, index2):
     return result
 
 def NOT(index1, index2):
-    index1_sort_keys = sort_index(index1)
-    index2_sort_keys = sort_index(index2)
-
-    result = copy.deepcopy(index1_sort_keys)
-    i = j = 0
-    while i < len(index1_sort_keys) or j < len(index2_sort_keys):
-        if index1_sort_keys[i] == index2_sort_keys[j]:
-            result.remove(index1_sort_keys[i])
-            i = i + 1
-            j = j + 1
-        else:
-            if index1_sort_keys[i] < index2_sort_keys[j]:
-                i = i + 1
-            else:
-                j = j + 1
-    return result
+    # index1_sort_keys = sort_index(index1)
+    # index2_sort_keys = sort_index(index2)
+    #
+    # result = copy.deepcopy(index1_sort_keys)
+    # i = j = 0
+    # while i < len(index1_sort_keys) and j < len(index2_sort_keys):
+    #     if index1_sort_keys[i] == index2_sort_keys[j]:
+    #         result.remove(index1_sort_keys[i])
+    #         i = i + 1
+    #         j = j + 1
+    #     else:
+    #         if index1_sort_keys[i] < index2_sort_keys[j]:
+    #             i = i + 1
+    #         else:
+    #             j = j + 1
+    result = AND(index1, index2)
+    new_result = copy.deepcopy(index1)
+    keys = list(new_result)
+    for key in keys:
+        if key in result:
+            new_result.pop(key)
+    return new_result
 
 def create_trie_tree(tree, path_to_term):
     file = open(path_to_term)
@@ -222,7 +228,6 @@ def home():
 
         if flag == 3:
             pass
-
             term_list = ["apple", "app", "application", "apolo", "bppb", "appnd"]
             #wildcard_search(term_list, data)
 

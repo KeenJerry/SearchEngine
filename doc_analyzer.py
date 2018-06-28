@@ -3,6 +3,7 @@ import re
 import os
 import glob
 import json
+import math
 
 
 CLUSTER_SIZE = 16000
@@ -19,7 +20,7 @@ def save_as_json(data,json_name):
 	print("save_as_json() completed")
 
 
-def read_data_from_files(file_names):
+def read_data_from_files(file_names,file_start_index):
 	postings = dict()
 	"""
 	postings is likes this:
@@ -29,7 +30,8 @@ def read_data_from_files(file_names):
 			     doc_id_z : [ pos7, pos8 ] } }
 	"""
 
-	for doc_id,file_name in enumerate(file_names):
+	for id,file_name in enumerate(file_names):
+		print(id + file_start_index, file_name)
 		file = open(file_name,"r")
 		content = file.read()
 		#print(content)
@@ -46,9 +48,10 @@ def read_data_from_files(file_names):
 			else:
 				result_tokens.append(token)
 		#print(result_tokens)
-		print(doc_id+1,"/",len(file_names))
+		print(id+1,"/",len(file_names))
 
 		for pos,token in enumerate(result_tokens):
+			doc_id = id + file_start_index
 			if token in postings:
 				if doc_id in postings[token]:
 					postings[token][doc_id].append(pos)
@@ -95,7 +98,7 @@ def read_data_from_path(src_path, dest_path):
 		with open(json_name, 'r') as f:
 			old_file_names = json.load(f)
 	file_names = glob.glob(src_path+"*.html")
-	new_file_names = list(set(file_names).difference(set(old_file_names)))
+	new_file_names = list(set(file_names).difference(set(old_file_names))) # notice the order
 	print("Found",len(new_file_names),"new files.")
 	if(len(new_file_names)==0):
 		return
@@ -106,17 +109,21 @@ def read_data_from_path(src_path, dest_path):
 		str_id = re.search("pos([0-9]*).json",name).group(1)
 		indices.append(int(str_id))
 	if len(indices)>0: 
-		last_index = max(indices)
+		json_last_index = max(indices)
 	else:
-		last_index = -1
+		json_last_index = -1
 
-	start_index = last_index + 1
-	print("The new data file index will start from",start_index,".")
+	file_start_index = len(old_file_names)
+	json_start_index = json_last_index + 1
+	print("The new data file index will start from",json_start_index,".")
+
 	for index,file_names_part in enumerate(chunks(new_file_names,CLUSTER_SIZE)):
-		[postings,tf_info] = read_data_from_files(file_names_part)
-		save_as_json(postings, dest_path+"pos"+str(start_index+index)+".json")
-		save_as_json(tf_info, dest_path+"tf"+str(start_index+index)+".json")
+		[postings,tf_info] = read_data_from_files(file_names_part,file_start_index)
+		save_as_json(postings, dest_path+"pos"+str(json_start_index+index)+".json")
+		save_as_json(tf_info, dest_path+"tf"+str(json_start_index+index)+".json")
+		file_start_index += CLUSTER_SIZE
 
+	file_names = old_file_names + new_file_names
 	save_as_json(file_names, json_name)
 
 
@@ -138,7 +145,7 @@ def calc_idf(file_path,json_path,output_path):
 	all_idf = dict()
 	for term,df in all_df.items():
 		all_idf[term] = math.log(file_num/df)
-	print(all_idf)
+	#print(all_idf)
 
 	save_as_json(all_idf, output_path+"idf.json")
 	print("calc_idf() completed")

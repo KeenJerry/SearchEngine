@@ -15,12 +15,12 @@ from MaxHeap import MaxHeap
 index_elimination_threshold = 0.5 # ???
 r = 10 # ???
 
-def generateChampionList(data):
-    new_tf_info = {}
-    for term, tfs in data[1].iterms():
-        new_tfs_info = {tp[0]:tp[1]} for tp in sorted(tfs.items(), key=lambda x:x[1], reverse=True)[:(r + 1)]}
-        new_tf_info.update({term: new_tfs_info})
-    return [data[0], new_tf_info, data[2]]
+# def generateChampionList(data):
+#     new_tf_info = {}
+#     for term, tfs in data[1].iterms():
+#         new_tfs_info = {tp[0]:tp[1]} for tp in sorted(tfs.items(), key=lambda x:x[1], reverse=True)[:(r + 1)]}
+#         new_tf_info.update({term: new_tfs_info})
+#     return [data[0], new_tf_info, data[2]]
 
 def fastCosineScore(query, data, docs, index_elimination=False):
     scores = {}
