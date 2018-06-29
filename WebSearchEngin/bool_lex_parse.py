@@ -3,7 +3,7 @@ import ply.yacc as yacc
 import nltk
 
 from WebSearchEngin.views import AND, OR, NOT
-from WebSearchEngin.query import find_term
+from query import find_term
 
 
 # List of token names

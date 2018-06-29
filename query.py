@@ -101,7 +101,7 @@ def bool_search(sentence): #only for debug
         for key in result:
             # print(key, end=' ')
             print(filename[int(key)])
-            print_content(filename[int(key)], '../../reuters/Reuters/', sentence)
+            # print_content(filename[int(key)], '../../reuters/Reuters/', sentence)
 
 
 def VSM_search(tokens, weights): #only for debug
@@ -247,7 +247,7 @@ term_list = ["apple","app","application","apolo","bppb","appnd"]
 all = {}
 for i in range(0, 10788):
     all[i] = '0'
-path_to_term = '../TermResource/pos0.json'
+path_to_term = './TermResource/pos0.json'
 FLAG_WILDCARD = False
 FLAG_BOOL = True
 FLAG_PHRASE = False
@@ -255,9 +255,9 @@ FLAG_SYNONYM = False
 
 trie_tree = TrieTree()
 tf_idf_tree = TrieTree()
-views.create_trie_tree(trie_tree, '../TermResource/pos0.json')
-views.create_trie_tree(tf_idf_tree, '../TermResource/tf0.json')
-a_file = open('../TermResource/filenames.json')
+views.create_trie_tree(trie_tree, './TermResource/pos0.json')
+views.create_trie_tree(tf_idf_tree, './TermResource/tf0.json')
+a_file = open('./TermResource/filenames.json')
 filename = json.load(a_file)
 data = None
 if __name__ == "__main__":
