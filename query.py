@@ -101,6 +101,7 @@ def bool_search(sentence): #only for debug
         for key in result:
             # print(key, end=' ')
             print(filename[int(key)])
+        print(len(result))
             # print_content(filename[int(key)], '../../reuters/Reuters/', sentence)
 
 
@@ -128,7 +129,7 @@ def VSM_search(tokens, weights): #only for debug
     for key in sorted_doc:
         print(filename[int(key[0])])
         # print(key)
-    # print(sorted_doc)
+    print(len(sorted_doc))
     return sorted_doc
 
 
@@ -171,6 +172,7 @@ def phase_search(sentence): #only for debug
             print(filename[int(key)])
             # file = open(filename[int(key)])
             # content = file.read()
+        print(len(result))
 
 
     return [1,2]
